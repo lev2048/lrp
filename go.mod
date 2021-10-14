@@ -3,7 +3,10 @@ module lrp
 go 1.17
 
 require (
+	github.com/antonfisher/nested-logrus-formatter v1.3.1
 	github.com/lucas-clemente/quic-go v0.23.0
+	github.com/rs/xid v1.3.0
+	github.com/sirupsen/logrus v1.8.1
 	github.com/xtaci/kcp-go v5.4.20+incompatible
 	github.com/xtaci/smux v1.5.16
 )

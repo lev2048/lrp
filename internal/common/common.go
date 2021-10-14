@@ -1,13 +1,24 @@
 package common
 
 import (
+	"bytes"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
 	"math/big"
+	"strconv"
 )
+
+func GenerateServerToken() string {
+	token := bytes.NewBufferString("")
+	for i := 0; i < 6; i++ {
+		v, _ := rand.Int(rand.Reader, big.NewInt(9))
+		token.WriteString(strconv.Itoa(int(v.Int64())))
+	}
+	return token.String()
+}
 
 func GenerateTLSConfig(title string) (*tls.Config, error) {
 	key, err := rsa.GenerateKey(rand.Reader, 1024)

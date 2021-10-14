@@ -8,11 +8,12 @@ import (
 
 type Conn interface {
 	io.ReadWriteCloser
+
 	Name() string
 	Info() string
 	Dial(dst string) (Conn, error)
 	Accept() (Conn, error)
-	Listen(dst string) (Conn, error)
+	Listen(addr string) (Conn, error)
 }
 
 func NewConn(proto string) (Conn, error) {
