@@ -3,7 +3,6 @@ package lrp
 import (
 	"errors"
 	"lrp/internal/common"
-	"lrp/internal/conn"
 	nt "lrp/internal/conn"
 
 	"github.com/rs/xid"
@@ -60,14 +59,20 @@ func (s *Server) Run(sp, proto, wp, tk string) bool {
 func (s *Server) handleClient(conn nt.Conn) {
 	if tk, err := DecodeReceive(conn); err != nil || string(tk[1:]) != s.token {
 		log.Warn("auth client faild", string(tk[1:]))
+		EncodeSend(conn, []byte{1, 0})
 		return
 	}
-
-	sc := newSClient(conn)
-	go sc.Serve()
-
-	id := xid.New()
+	if _, err := EncodeSend(conn, []byte{1, 1}); err != nil {
+		log.Warn("send auth reply err", err)
+		return
+	}
+	id, sc := xid.New(), newSClient(conn)
 	s.clients.Set(id.String(), sc)
+	defer func() {
+		conn.Close()
+		s.clients.Remove(id.String())
+	}()
+	sc.Serve()
 }
 
 func (s *Server) StartWebServer() error {
@@ -85,27 +90,53 @@ func (s *Server) DelProxy(cid, pid string) error {
 func (s *Server) GetClientList() {}
 
 type SClient struct {
-	conn        conn.Conn
+	conn        nt.Conn
 	proxyBucket *common.Bucket
 }
 
-func newSClient(conn conn.Conn) *SClient {
+func newSClient(conn nt.Conn) *SClient {
 	return &SClient{
 		conn:        conn,
-		proxyBucket: common.NewBucket(1024),
+		proxyBucket: common.NewBucket(200),
 	}
 }
 
 func (sc *SClient) Serve() {
 	for {
 		if data, err := DecodeReceive(sc.conn); err != nil {
-
+			switch data[0] {
+			case 3:
+				if ps := sc.proxyBucket.Get(string(data[1:9])); ps != nil {
+					if tr := ps.(*ProxyServer).TransportBucket.Get(string(data[9:17])); tr != nil {
+						tr.Send(data[17:])
+					} else {
+						log.Warn("cant find tr exit...")
+					}
+				} else {
+					log.Warn("cant find ps exit..")
+				}
+			case 4:
+				if ps, err := sc.AddProxy(common.AddrByteToString(data[1:7]), true); err != nil {
+					EncodeSend(sc.conn, []byte{4, 0})
+					log.Warn("client request create temp proxy failed..", err)
+				} else {
+					if _, err := EncodeSend(sc.conn, append([]byte{4, 1}, ps.listenPort...)); err != nil {
+						log.Warn("send temp proxy result err", err)
+					}
+				}
+			default:
+				log.Warn("not supported cmd faild", data[0])
+				return
+			}
+		} else {
+			log.Warn("receive client data faild , close client")
+			return
 		}
 	}
 }
 
-func (sc *SClient) AddProxy(dest string) error {
-	return nil
+func (sc *SClient) AddProxy(dest string, isTemp bool) (*ProxyServer, error) {
+	return nil, nil
 }
 
 func (sc *SClient) DelProxy(pid string) error {

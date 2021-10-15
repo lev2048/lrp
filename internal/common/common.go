@@ -6,8 +6,11 @@ import (
 	"crypto/rsa"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/binary"
 	"encoding/pem"
+	"fmt"
 	"math/big"
+	"net"
 	"strconv"
 )
 
@@ -18,6 +21,14 @@ func GenerateServerToken() string {
 		token.WriteString(strconv.Itoa(int(v.Int64())))
 	}
 	return token.String()
+}
+
+//AddrStringToByte 网络地址 {1,1,1,1,11,11} -> “1.1.1.1:80” 端口大端序
+func AddrByteToString(addr []byte) string {
+	ip := net.IP(addr[0:4])
+	port := binary.BigEndian.Uint16(addr[4:6])
+	destAddr := ip.String() + ":" + fmt.Sprint(port)
+	return destAddr
 }
 
 func GenerateTLSConfig(title string) (*tls.Config, error) {
