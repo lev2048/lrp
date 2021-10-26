@@ -69,7 +69,6 @@ func (ps *ProxyServer) handleConn(conn net.Conn) {
 		log.Warn("send accept pk to client error", err)
 		return
 	}
-	defer close(ps.isOk)
 	for {
 		select {
 		case <-time.After(time.Second * 15):
@@ -78,8 +77,8 @@ func (ps *ProxyServer) handleConn(conn net.Conn) {
 			return
 		case isRemoteOk := <-ps.isOk:
 			if isRemoteOk {
-				tr := NewTransport(tid, ps.Conn, conn)
-				ps.TransportBucket.Set(XidToString(tid), tr)
+				tr := NewTransport(true, tid, nil, ps.Conn, conn)
+				ps.TransportBucket.Set(common.XidToString(tid), tr)
 				go tr.Serve()
 			} else {
 				log.Warn("dest obj connect failed")
@@ -96,5 +95,6 @@ func (ps *ProxyServer) Close() {
 	}
 	ps.TransportBucket = nil
 	close(ps.exit)
+	close(ps.isOk)
 	//todo: remove stat
 }

@@ -145,7 +145,7 @@ func (sc *SClient) Serve() {
 }
 
 func (sc *SClient) AddProxy(dest string, isTemp bool) (*ProxyServer, error) {
-	if destAddr, err := AddrStringToByte("tcp", dest); err != nil {
+	if destAddr, err := common.AddrStringToByte("tcp", dest); err != nil {
 		return nil, err
 	} else {
 		pid := xid.New()

@@ -6,18 +6,22 @@ import (
 )
 
 type Transport struct {
-	id   []byte
-	cc   nt.Conn
-	conn net.Conn
-	exit chan bool
+	id       []byte
+	pd       []byte
+	cc       nt.Conn
+	conn     net.Conn
+	exit     chan bool
+	isServer bool
 }
 
-func NewTransport(id []byte, cc nt.Conn, conn net.Conn) *Transport {
+func NewTransport(isServer bool, id, pd []byte, cc nt.Conn, conn net.Conn) *Transport {
 	return &Transport{
-		id:   id,
-		cc:   cc,
-		conn: conn,
-		exit: make(chan bool),
+		id:       id,
+		pd:       pd,
+		cc:       cc,
+		conn:     conn,
+		exit:     make(chan bool),
+		isServer: isServer,
 	}
 }
 
@@ -35,7 +39,13 @@ func (tr *Transport) Serve() {
 				log.Warn("recive data err", err)
 				return
 			} else {
-				payload := append([]byte{3}, tr.id...)
+				var payload []byte
+				if tr.isServer {
+					payload = append([]byte{3}, tr.pd...)
+					payload = append(payload, tr.id...)
+				} else {
+					payload = append([]byte{3}, tr.id...)
+				}
 				payload = append(payload, buf[:n]...)
 				if _, err := EncodeSend(tr.cc, payload); err != nil {
 					log.Warn("send data to client err", err)
