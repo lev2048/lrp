@@ -16,6 +16,10 @@ type Bucket struct {
 	data []interface{}
 }
 
+func (bt *Bucket) GetAll() []interface{} {
+	return bt.data
+}
+
 func (bt *Bucket) Get(id string) interface{} {
 	if i, ok := bt.link[id]; ok {
 		return bt.data[i]

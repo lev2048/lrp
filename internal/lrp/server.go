@@ -1,6 +1,7 @@
 package lrp
 
 import (
+	"encoding/binary"
 	"errors"
 	"lrp/internal/common"
 	nt "lrp/internal/conn"
@@ -75,15 +76,21 @@ func (s *Server) handleClient(conn nt.Conn) {
 	sc.Serve()
 }
 
-func (s *Server) StartWebServer() error {
-	return nil
-}
-
 func (s *Server) AddProxy(cid, dest string) error {
+	if client := s.clients.Get(cid); client != nil {
+		if _, err := client.(*SClient).AddProxy(dest, false); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
 func (s *Server) DelProxy(cid, pid string) error {
+	if client := s.clients.Get(cid); client != nil {
+		if err := client.(*SClient).DelProxy(pid); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -108,7 +115,7 @@ func (sc *SClient) Serve() {
 			case 3:
 				if ps := sc.proxyBucket.Get(string(data[1:9])); ps != nil {
 					if tr := ps.(*ProxyServer).TransportBucket.Get(string(data[9:17])); tr != nil {
-						tr.Send(data[17:])
+						tr.(*Transport).Write(data[17:])
 					} else {
 						log.Warn("cant find tr exit...")
 					}
@@ -120,7 +127,9 @@ func (sc *SClient) Serve() {
 					EncodeSend(sc.conn, []byte{4, 0})
 					log.Warn("client request create temp proxy failed..", err)
 				} else {
-					if _, err := EncodeSend(sc.conn, append([]byte{4, 1}, ps.listenPort...)); err != nil {
+					lp := make([]byte, 2)
+					binary.BigEndian.PutUint16(lp, ps.ListenPort)
+					if _, err := EncodeSend(sc.conn, append([]byte{4, 1}, lp...)); err != nil {
 						log.Warn("send temp proxy result err", err)
 					}
 				}
@@ -136,9 +145,24 @@ func (sc *SClient) Serve() {
 }
 
 func (sc *SClient) AddProxy(dest string, isTemp bool) (*ProxyServer, error) {
-	return nil, nil
+	if destAddr, err := AddrStringToByte("tcp", dest); err != nil {
+		return nil, err
+	} else {
+		pid := xid.New()
+		if ps, err := NewProxyServer(pid.Bytes(), sc.conn, destAddr); err != nil {
+			return nil, err
+		} else {
+			sc.proxyBucket.Set(pid.String(), ps)
+			go ps.Serve()
+			return ps, nil
+		}
+	}
 }
 
 func (sc *SClient) DelProxy(pid string) error {
-	return nil
+	if ps := sc.proxyBucket.Get(pid); ps != nil {
+		ps.(*ProxyServer).Close()
+		return nil
+	}
+	return errors.New("cant find proxyServer by id: " + pid)
 }

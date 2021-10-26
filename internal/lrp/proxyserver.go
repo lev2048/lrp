@@ -12,12 +12,13 @@ import (
 )
 
 type ProxyServer struct {
-	Id              []byte
-	Ch              chan bool
+	id              []byte
+	exit            chan bool
+	isOk            chan bool
 	Conn            nt.Conn
 	DestAddr        []byte
 	Listener        net.Listener
-	ListenPort      uint32
+	ListenPort      uint16
 	TransportBucket *common.Bucket
 }
 
@@ -31,11 +32,13 @@ func NewProxyServer(id []byte, conn nt.Conn, dest []byte) (*ProxyServer, error) 
 		return nil, err
 	}
 	return &ProxyServer{
-		Id:              id,
-		Ch:              make(chan bool, 0),
+		id:              id,
+		exit:            make(chan bool),
+		isOk:            make(chan bool),
 		Conn:            conn,
+		DestAddr:        dest,
 		Listener:        ln,
-		ListenPort:      uint32(lp),
+		ListenPort:      uint16(lp),
 		TransportBucket: common.NewBucket(1024),
 	}, nil
 }
@@ -43,32 +46,41 @@ func NewProxyServer(id []byte, conn nt.Conn, dest []byte) (*ProxyServer, error) 
 func (ps *ProxyServer) Serve() {
 	defer ps.Listener.Close()
 	for {
-		if conn, err := ps.Listener.Accept(); err != nil {
-			log.Warn("ProxyServer accept conn faild", err)
+		select {
+		case <-ps.exit:
+			log.Info("proxy is closed")
 			return
-		} else {
-			go ps.handleConn(conn)
+		default:
+			if conn, err := ps.Listener.Accept(); err != nil {
+				log.Warn("ProxyServer accept conn faild", err)
+				return
+			} else {
+				go ps.handleConn(conn)
+			}
 		}
 	}
 }
 
 func (ps *ProxyServer) handleConn(conn net.Conn) {
-	tid := xid.New()
-	data := append([]byte{2}, tid.Bytes()...)
+	tid := xid.New().Bytes()
+	data := append([]byte{2}, tid...)
 	data = append(data, ps.DestAddr...)
 	if _, err := EncodeSend(ps.Conn, data); err != nil {
 		log.Warn("send accept pk to client error", err)
 		return
 	}
+	defer close(ps.isOk)
 	for {
 		select {
 		case <-time.After(time.Second * 15):
 			log.Warn("wait accept pk reply timeout")
+			conn.Close()
 			return
-		case isRemoteOk := <-ps.Ch:
+		case isRemoteOk := <-ps.isOk:
 			if isRemoteOk {
-				tr := NewTransport()
-				ps.TransportBucket.Set(string(tid.Bytes()), tr)
+				tr := NewTransport(tid, ps.Conn, conn)
+				ps.TransportBucket.Set(XidToString(tid), tr)
+				go tr.Serve()
 			} else {
 				log.Warn("dest obj connect failed")
 				conn.Close()
@@ -79,5 +91,10 @@ func (ps *ProxyServer) handleConn(conn net.Conn) {
 }
 
 func (ps *ProxyServer) Close() {
-
+	for _, v := range ps.TransportBucket.GetAll() {
+		v.(*Transport).Close()
+	}
+	ps.TransportBucket = nil
+	close(ps.exit)
+	//todo: remove stat
 }
