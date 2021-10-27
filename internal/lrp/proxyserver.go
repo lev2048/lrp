@@ -4,8 +4,6 @@ import (
 	"lrp/internal/common"
 	nt "lrp/internal/conn"
 	"net"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/rs/xid"
@@ -27,10 +25,6 @@ func NewProxyServer(id []byte, conn nt.Conn, dest []byte) (*ProxyServer, error) 
 	if err != nil {
 		return nil, err
 	}
-	lp, err := strconv.Atoi(strings.Split(ln.Addr().String(), ":")[1])
-	if err != nil {
-		return nil, err
-	}
 	return &ProxyServer{
 		id:              id,
 		exit:            make(chan bool),
@@ -38,7 +32,7 @@ func NewProxyServer(id []byte, conn nt.Conn, dest []byte) (*ProxyServer, error) 
 		Conn:            conn,
 		DestAddr:        dest,
 		Listener:        ln,
-		ListenPort:      uint16(lp),
+		ListenPort:      uint16(ln.Addr().(*net.TCPAddr).Port),
 		TransportBucket: common.NewBucket(1024),
 	}, nil
 }
@@ -63,7 +57,8 @@ func (ps *ProxyServer) Serve() {
 
 func (ps *ProxyServer) handleConn(conn net.Conn) {
 	tid := xid.New().Bytes()
-	data := append([]byte{2}, tid...)
+	data := append([]byte{2}, ps.id...)
+	data = append(data, tid...)
 	data = append(data, ps.DestAddr...)
 	if _, err := EncodeSend(ps.Conn, data); err != nil {
 		log.Warn("send accept pk to client error", err)

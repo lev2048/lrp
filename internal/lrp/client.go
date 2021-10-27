@@ -6,7 +6,6 @@ import (
 	"lrp/internal/common"
 	nt "lrp/internal/conn"
 	"net"
-	"strconv"
 	"time"
 )
 
@@ -14,30 +13,26 @@ type Client struct {
 	id       []byte
 	token    uint32
 	verbose  bool
+	presult  chan []byte
 	Conn     nt.Conn
 	TrBucket *common.Bucket
 }
 
-func NewClient(tk string, vb bool) *Client {
-	if tk == "" || len(tk) != 6 {
+func NewClient(tk uint32, vb bool) *Client {
+	if tk == 0 {
 		log.Error("input token error")
 		return nil
 	}
-	ti, err := strconv.Atoi(tk)
-	if err != nil {
-		log.Error("decode token error")
-		return nil
-	}
 	return &Client{
-		token:    uint32(ti),
+		token:    uint32(tk),
 		verbose:  vb,
+		presult:  make(chan []byte),
 		TrBucket: common.NewBucket(1024),
 	}
 }
 
-func (c *Client) Run(server, dest string) error {
-	tmpResult := make(chan []byte)
-	nt, err := nt.NewConn("tcp")
+func (c *Client) Run(server, proto string) error {
+	nt, err := nt.NewConn(proto)
 	if err != nil {
 		return err
 	}
@@ -51,21 +46,25 @@ func (c *Client) Run(server, dest string) error {
 			defer c.Conn.Close()
 			for {
 				if pl, err := DecodeReceive(c.Conn); err != nil {
-					log.Error("recive data error", err)
+					log.Error("recive data error: ", err)
+					log.Error("exit ...")
+					return
 				} else {
 					switch pl[0] {
 					case 1:
 						//临时代理请求结果
-						if pl[1] == 3 {
-							tmpResult <- pl[2:]
+						switch pl[1] {
+						case 3:
+							c.presult <- pl[2:]
+						default:
+							log.Warn("Unsupported replay type")
 						}
-						log.Warn("Unsupported result type", pl)
 					case 2:
 						//新连接请求
-						reply := append([]byte{1, 2}, pl[1:9]...)
+						reply := append([]byte{1, 2}, pl[1:13]...)
 						isCreateOk := byte(1)
-						dest := common.AddrByteToString(pl[17:])
-						if err := c.NewTransport(dest, pl[1:9], pl[9:17]); err != nil {
+						dest := common.AddrByteToString(pl[25:])
+						if err := c.NewTransport(dest, pl[1:13], pl[13:25]); err != nil {
 							log.Warn("create transport failed", err)
 							isCreateOk = byte(0)
 						}
@@ -73,8 +72,8 @@ func (c *Client) Run(server, dest string) error {
 							log.Warn("send to Server failed(on createTr)", err)
 						}
 					case 3:
-						if tr := c.TrBucket.Get(common.XidToString(pl[1:9])); tr != nil {
-							if err := tr.(*Transport).Write(pl[9:]); err != nil {
+						if tr := c.TrBucket.Get(common.XidToString(pl[1:13])); tr != nil {
+							if err := tr.(*Transport).Write(pl[13:]); err != nil {
 								log.Warn("write data to dest err", err)
 							}
 						}
@@ -89,13 +88,35 @@ func (c *Client) Run(server, dest string) error {
 	}
 }
 
+func (c *Client) AddTempProxy(dest string) (uint16, error) {
+	if addr, err := common.AddrStringToByte(dest, "tcp"); err != nil {
+		return 0, err
+	} else {
+		req := append([]byte{4}, addr...)
+		if _, err := EncodeSend(c.Conn, req); err != nil {
+			return 0, err
+		}
+		for {
+			select {
+			case <-time.After(time.Second * 5):
+				return 0, errors.New("wait server reply timeout")
+			case res := <-c.presult:
+				if res[0] != 1 {
+					return 0, errors.New("request temp proxy failed")
+				}
+				return binary.BigEndian.Uint16(res[1:]), nil
+			}
+		}
+	}
+}
+
 func (c *Client) NewTransport(dest string, pid, tid []byte) error {
 	if conn, err := net.Dial("tcp", dest); err != nil {
 		return err
 	} else {
 		tr := NewTransport(false, tid, pid, c.Conn, conn)
 		c.TrBucket.Set(common.XidToString(tid), tr)
-		tr.Serve()
+		go tr.Serve()
 		return nil
 	}
 }

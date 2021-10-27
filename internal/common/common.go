@@ -19,6 +19,9 @@ func GenerateServerToken() string {
 	token := bytes.NewBufferString("")
 	for i := 0; i < 6; i++ {
 		v, _ := rand.Int(rand.Reader, big.NewInt(9))
+		if i == 0 && int(v.Int64()) == 0 {
+			i--
+		}
 		token.WriteString(strconv.Itoa(int(v.Int64())))
 	}
 	return token.String()
@@ -37,7 +40,7 @@ func AddrStringToByte(addr string, netType string) ([]byte, error) {
 	if netType == "tcp" {
 		address, err := net.ResolveTCPAddr("tcp", addr)
 		if err != nil {
-			fmt.Println("地址格式转换失败")
+			fmt.Println("地址格式转换失败: ", addr, err)
 			return nil, err
 		}
 		port := make([]byte, 2)
@@ -47,7 +50,7 @@ func AddrStringToByte(addr string, netType string) ([]byte, error) {
 	} else {
 		address, err := net.ResolveUDPAddr("udp", addr)
 		if err != nil {
-			fmt.Println("地址格式转换失败")
+			fmt.Println("地址格式转换失败: ", addr, err)
 			return nil, err
 		}
 		port := make([]byte, 2)

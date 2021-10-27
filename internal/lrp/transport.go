@@ -41,10 +41,10 @@ func (tr *Transport) Serve() {
 			} else {
 				var payload []byte
 				if tr.isServer {
+					payload = append([]byte{3}, tr.id...)
+				} else {
 					payload = append([]byte{3}, tr.pd...)
 					payload = append(payload, tr.id...)
-				} else {
-					payload = append([]byte{3}, tr.id...)
 				}
 				payload = append(payload, buf[:n]...)
 				if _, err := EncodeSend(tr.cc, payload); err != nil {
