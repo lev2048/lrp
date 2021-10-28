@@ -71,8 +71,17 @@ func (c *Client) Run(server, proto string) error {
 					case 3:
 						if tr := c.TrBucket.Get(common.XidToString(pl[1:13])); tr != nil {
 							if err := tr.(*Transport).Write(pl[13:]); err != nil {
-								log.Warn("write data to dest err", err)
+								log.Warn("write data to dest err ", err)
 							}
+						} else {
+							log.Warn("transport id not found")
+						}
+					case 5:
+						if tr := c.TrBucket.Get(common.XidToString(pl[1:])); tr != nil {
+							tr.(*Transport).Close(false)
+							c.TrBucket.Remove(common.XidToString(pl[1:]))
+						} else {
+							log.Warn("close tr not found")
 						}
 					default:
 						log.Error("Unsupported protocol")

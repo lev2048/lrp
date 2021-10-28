@@ -89,7 +89,7 @@ func (ps *ProxyServer) handleConn(conn net.Conn) {
 
 func (ps *ProxyServer) Close() {
 	for _, v := range ps.TransportBucket.GetAll() {
-		v.(*Transport).Close()
+		v.(*Transport).Close(true)
 	}
 	ps.TransportBucket = nil
 	close(ps.exit)

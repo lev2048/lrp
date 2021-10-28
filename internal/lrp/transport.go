@@ -1,6 +1,8 @@
 package lrp
 
 import (
+	"errors"
+	"io"
 	nt "lrp/internal/conn"
 	"net"
 )
@@ -11,6 +13,7 @@ type Transport struct {
 	cc       nt.Conn
 	conn     net.Conn
 	exit     chan bool
+	isClosed bool
 	isServer bool
 }
 
@@ -21,23 +24,26 @@ func NewTransport(isServer bool, id, pd []byte, cc nt.Conn, conn net.Conn) *Tran
 		cc:       cc,
 		conn:     conn,
 		exit:     make(chan bool),
+		isClosed: false,
 		isServer: isServer,
 	}
 }
 
 func (tr *Transport) Serve() {
-	defer tr.conn.Close()
 	buf := make([]byte, 1460)
 	for {
 		select {
 		case <-tr.exit:
-			log.Info("transport has exited")
 			return
 		default:
 			if n, err := tr.conn.Read(buf); err != nil {
-				//todo: notify client close tr
-				log.Warn("recive data err", err)
-				return
+				if tr.isClosed {
+					return
+				}
+				if err != io.EOF {
+					log.Warn("recive data err ", err)
+				}
+				tr.Close(true)
 			} else {
 				var payload []byte
 				if tr.isServer {
@@ -48,8 +54,8 @@ func (tr *Transport) Serve() {
 				}
 				payload = append(payload, buf[:n]...)
 				if _, err := EncodeSend(tr.cc, payload); err != nil {
-					log.Warn("send data to client err", err)
-					return
+					log.Warn("send data to client err ", err)
+					tr.Close(false)
 				}
 			}
 		}
@@ -57,14 +63,33 @@ func (tr *Transport) Serve() {
 }
 
 func (tr *Transport) Write(data []byte) error {
+	if tr.isClosed {
+		return errors.New("transport is closed")
+	}
 	if _, err := tr.conn.Write(data); err != nil {
 		log.Warn("send data to user err", err)
-		tr.Close()
+		tr.Close(false)
 		return err
 	}
 	return nil
 }
 
-func (tr *Transport) Close() {
+func (tr *Transport) Close(notify bool) {
+	if tr.isClosed {
+		return
+	}
+	if notify {
+		pl := []byte{5}
+		if tr.isServer {
+			pl = append(pl, tr.id...)
+		} else {
+			pl = append(append(pl, tr.pd...), tr.id...)
+		}
+		if _, err := EncodeSend(tr.cc, pl); err != nil {
+			log.Warn("send close data err ", err)
+		}
+	}
 	close(tr.exit)
+	tr.isClosed = true
+	tr.conn.Close()
 }

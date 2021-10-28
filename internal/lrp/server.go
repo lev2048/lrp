@@ -156,6 +156,17 @@ func (sc *SClient) Serve() {
 						log.Warn("send temp proxy result err ", err)
 					}
 				}
+			case 5:
+				if ps := sc.proxyBucket.Get(common.XidToString(data[1:13])); ps != nil {
+					if tr := ps.(*ProxyServer).TransportBucket.Get(common.XidToString(data[13:])); tr != nil {
+						tr.(*Transport).Close(false)
+						ps.(*ProxyServer).TransportBucket.Remove(common.XidToString(data[13:]))
+					} else {
+						log.Warn("close tr not found")
+					}
+				} else {
+					log.Warn("close pr not found")
+				}
 			default:
 				log.Warn("not supported cmd faild ", data[0])
 				return
