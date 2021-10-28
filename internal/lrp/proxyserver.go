@@ -12,11 +12,11 @@ import (
 type ProxyServer struct {
 	id              []byte
 	exit            chan bool
-	isOk            chan bool
 	Conn            nt.Conn
 	DestAddr        []byte
 	Listener        net.Listener
 	ListenPort      uint16
+	ResultBucket    *common.Bucket
 	TransportBucket *common.Bucket
 }
 
@@ -28,11 +28,11 @@ func NewProxyServer(id []byte, conn nt.Conn, dest []byte) (*ProxyServer, error) 
 	return &ProxyServer{
 		id:              id,
 		exit:            make(chan bool),
-		isOk:            make(chan bool),
 		Conn:            conn,
 		DestAddr:        dest,
 		Listener:        ln,
 		ListenPort:      uint16(ln.Addr().(*net.TCPAddr).Port),
+		ResultBucket:    common.NewBucket(1024),
 		TransportBucket: common.NewBucket(1024),
 	}, nil
 }
@@ -56,21 +56,24 @@ func (ps *ProxyServer) Serve() {
 }
 
 func (ps *ProxyServer) handleConn(conn net.Conn) {
-	tid := xid.New().Bytes()
-	data := append([]byte{2}, ps.id...)
-	data = append(data, tid...)
-	data = append(data, ps.DestAddr...)
+	tid, seq := xid.New().Bytes(), xid.New()
+	data := append(append([]byte{2}, ps.id...), tid...)
+	data = append(append(data, seq.Bytes()...), ps.DestAddr...)
 	if _, err := EncodeSend(ps.Conn, data); err != nil {
 		log.Warn("send accept pk to client error", err)
 		return
 	}
+	result := make(chan bool)
+	ps.ResultBucket.Set(seq.String(), result)
 	for {
 		select {
 		case <-time.After(time.Second * 15):
 			log.Warn("wait accept pk reply timeout")
 			conn.Close()
 			return
-		case isRemoteOk := <-ps.isOk:
+		case isRemoteOk := <-result:
+			defer close(result)
+			defer ps.ResultBucket.Remove(seq.String())
 			if isRemoteOk {
 				tr := NewTransport(true, tid, nil, ps.Conn, conn)
 				ps.TransportBucket.Set(common.XidToString(tid), tr)
@@ -90,6 +93,4 @@ func (ps *ProxyServer) Close() {
 	}
 	ps.TransportBucket = nil
 	close(ps.exit)
-	close(ps.isOk)
-	//todo: remove stat
 }

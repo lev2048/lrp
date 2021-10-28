@@ -52,7 +52,6 @@ func (c *Client) Run(server, proto string) error {
 				} else {
 					switch pl[0] {
 					case 1:
-						//临时代理请求结果
 						switch pl[1] {
 						case 3:
 							c.presult <- pl[2:]
@@ -60,10 +59,8 @@ func (c *Client) Run(server, proto string) error {
 							log.Warn("Unsupported replay type")
 						}
 					case 2:
-						//新连接请求
-						reply := append([]byte{1, 2}, pl[1:13]...)
-						isCreateOk := byte(1)
-						dest := common.AddrByteToString(pl[25:])
+						reply, isCreateOk := append(append([]byte{1, 2}, pl[1:13]...), pl[25:37]...), byte(1)
+						dest := common.AddrByteToString(pl[37:])
 						if err := c.NewTransport(dest, pl[1:13], pl[13:25]); err != nil {
 							log.Warn("create transport failed", err)
 							isCreateOk = byte(0)

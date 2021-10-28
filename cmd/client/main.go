@@ -55,7 +55,7 @@ func main() {
 			log.Error("request failed ", err)
 			return
 		} else {
-			log.Info("request successful")
+			log.Info("request temp proxy successful")
 			log.Info("server: " + strings.Split(serverAddr, ":")[0] + ":" + strconv.Itoa(int(port)) + " => " + destAddr)
 		}
 	}

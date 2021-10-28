@@ -122,10 +122,14 @@ func (sc *SClient) Serve() {
 				switch data[1] {
 				case 2:
 					if ps := sc.proxyBucket.Get(common.XidToString(data[2:14])); ps != nil {
-						if data[14] == 1 {
-							ps.(*ProxyServer).isOk <- true
+						if rc := ps.(*ProxyServer).ResultBucket.Get(common.XidToString(data[14:26])); rc != nil {
+							if data[26] == 1 {
+								rc.(chan bool) <- true
+							} else {
+								rc.(chan bool) <- false
+							}
 						} else {
-							ps.(*ProxyServer).isOk <- false
+							log.Warn("cant find recive creat tr result channel")
 						}
 					} else {
 						log.Warn("new transport rep not found ps")
