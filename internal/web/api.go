@@ -4,7 +4,6 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"lrp/internal/lrp"
 	"lrp/internal/status"
 	"strconv"
@@ -13,6 +12,12 @@ import (
 	"github.com/gin-gonic/gin"
 	cors "github.com/itsjamie/gin-cors"
 )
+
+type Result struct {
+	Msg  string      `json:"msg"`
+	Code int         `json:"code"`
+	Info interface{} `json:"info,omitempty"`
+}
 
 type Api struct {
 	token  string
@@ -44,15 +49,15 @@ func (api *Api) SetRouter() {
 	}))
 
 	api.engine.NoRoute(func(c *gin.Context) {
-		c.JSON(404, map[string]interface{}{
-			"msg":  "请求方法不存在",
-			"code": -3,
+		c.JSON(404, Result{
+			Msg:  "请求方法不存在",
+			Code: -3,
 		})
 	})
 
 	Router := api.engine.Group("/v1")
 	{
-		Router.GET("status", api.Login)
+		Router.GET("status", api.GetServerInfo)
 		Router.GET("dashbord", api.GetDashBoardInfo)
 
 		Router.POST("login", api.Login)
@@ -64,23 +69,23 @@ func (api *Api) SetRouter() {
 func (api *Api) Login(c *gin.Context) {
 	token := c.PostForm("token")
 	if v, err := strconv.Atoi(token); err != nil {
-		c.JSON(401, map[string]interface{}{
-			"msg":  "认证失败",
-			"code": -1,
+		c.JSON(401, Result{
+			Msg:  "认证失败",
+			Code: -1,
 		})
 		return
 	} else {
 		if api.lrps.CheckToken(uint32(v)) {
 			api.token = api.hmacSha256(token)
-			c.JSON(200, map[string]interface{}{
-				"msg":  "认证成功",
-				"code": 1,
-				"data": api.token,
+			c.JSON(200, Result{
+				Msg:  "认证成功",
+				Code: 1,
+				Info: api.token,
 			})
 		} else {
-			c.JSON(401, map[string]interface{}{
-				"msg":  "认证失败",
-				"code": -2,
+			c.JSON(401, Result{
+				Msg:  "认证失败",
+				Code: -2,
 			})
 		}
 	}
@@ -90,31 +95,31 @@ func (api *Api) AddProxy(c *gin.Context) {
 	mark, cid := c.PostForm("mark"), c.PostForm("clientId")
 	destAddr, ListenPort := c.PostForm("destAddr"), c.PostForm("listenPort")
 	if cid == "" {
-		c.JSON(500, map[string]interface{}{
-			"msg":  "添加失败",
-			"code": -1,
-			"info": "客户端id不能为空",
+		c.JSON(500, Result{
+			Msg:  "添加失败",
+			Code: -1,
+			Info: "客户端id不能为空",
 		})
 		return
 	}
 	if destAddr == "" {
-		c.JSON(500, map[string]interface{}{
-			"msg":  "添加失败",
-			"code": -1,
-			"info": "目标地址不能为空",
+		c.JSON(500, Result{
+			Msg:  "添加失败",
+			Code: -2,
+			Info: "目标地址不能为空",
 		})
 		return
 	}
 	if err := api.lrps.AddProxy(cid, destAddr, mark, ListenPort); err != nil {
-		c.JSON(500, map[string]interface{}{
-			"msg":  "添加失败",
-			"code": -2,
-			"info": err.Error(),
+		c.JSON(500, Result{
+			Msg:  "添加失败",
+			Code: -3,
+			Info: err.Error(),
 		})
 	} else {
-		c.JSON(200, map[string]interface{}{
-			"msg":  "添加成功",
-			"code": 1,
+		c.JSON(200, Result{
+			Msg:  "添加成功",
+			Code: 1,
 		})
 	}
 }
@@ -122,57 +127,41 @@ func (api *Api) AddProxy(c *gin.Context) {
 func (api *Api) DelProxy(c *gin.Context) {
 	cid, pid := c.PostForm("cid"), c.PostForm("pid")
 	if cid == "" || pid == "" {
-		c.JSON(500, map[string]interface{}{
-			"msg":  "删除失败",
-			"code": -1,
-			"info": "客户端id或代理id不能为空",
+		c.JSON(500, Result{
+			Msg:  "删除失败",
+			Code: -1,
+			Info: "客户端id或代理id不能为空",
 		})
 	} else {
 		if err := api.lrps.DelProxy(cid, pid); err != nil {
-			c.JSON(500, map[string]interface{}{
-				"msg":  "删除失败",
-				"code": -2,
-				"info": err.Error(),
+			c.JSON(500, Result{
+				Msg:  "删除失败",
+				Code: -2,
+				Info: err.Error(),
 			})
 		} else {
-			c.JSON(200, map[string]interface{}{
-				"msg":  "删除成功",
-				"code": 1,
+			c.JSON(200, Result{
+				Msg:  "删除成功",
+				Code: 1,
 			})
 		}
 	}
 }
 
 func (api *Api) GetDashBoardInfo(c *gin.Context) {
-	if info, err := json.Marshal(api.lrps.GetServerInfo()); err != nil {
-		c.JSON(500, map[string]interface{}{
-			"msg":  "获取失败",
-			"code": -1,
-			"info": err.Error(),
-		})
-	} else {
-		c.JSON(200, map[string]interface{}{
-			"msg":  "获取成功",
-			"code": 1,
-			"info": string(info),
-		})
-	}
+	c.JSON(200, Result{
+		Msg:  "获取成功",
+		Code: 1,
+		Info: api.lrps.GetServerInfo(),
+	})
 }
 
 func (api *Api) GetServerInfo(c *gin.Context) {
-	if res, err := api.monitor.Info(); err == nil {
-		c.JSON(500, map[string]interface{}{
-			"msg":  "获取失败",
-			"code": -1,
-			"info": err.Error(),
-		})
-	} else {
-		c.JSON(200, map[string]interface{}{
-			"msg":  "获取成功",
-			"code": 1,
-			"info": res,
-		})
-	}
+	c.JSON(200, Result{
+		Msg:  "获取成功",
+		Code: 1,
+		Info: api.monitor.Info(),
+	})
 }
 
 func (api *Api) hmacSha256(data string) string {

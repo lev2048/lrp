@@ -1,7 +1,6 @@
 package status
 
 import (
-	"encoding/json"
 	"fmt"
 	"math"
 	"time"
@@ -58,12 +57,8 @@ func (m *Monitor) Start() {
 	}(m.exit)
 }
 
-func (m *Monitor) Info() (string, error) {
-	if res, err := json.Marshal(m.Data); err != nil {
-		return "", err
-	} else {
-		return string(res), nil
-	}
+func (m *Monitor) Info() interface{} {
+	return m.Data
 }
 
 func (m *Monitor) Stop() {

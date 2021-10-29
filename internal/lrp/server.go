@@ -109,8 +109,9 @@ func (s *Server) DelProxy(cid, pid string) error {
 		if err := client.(*SClient).DelProxy(pid); err != nil {
 			return err
 		}
+		return nil
 	}
-	return nil
+	return errors.New("cant find client")
 }
 
 func (s *Server) CheckToken(value uint32) bool {
@@ -124,6 +125,7 @@ func (s *Server) GetServerInfo() ServerInfo {
 		ProxyNum:    0,
 		TProxyNum:   0,
 		ClientNum:   0,
+		ConnTotal:   0,
 		ExternalIp:  s.ExternalIp,
 		ServerPort:  s.ListenPort,
 		ClientInfos: make([]ClientInfo, 0),
@@ -151,6 +153,7 @@ func (s *Server) GetServerInfo() ServerInfo {
 				Status:  ps.Status,
 				ConnNum: len(ps.TransportBucket.GetAll()),
 			}
+			si.ConnTotal += pi.ConnNum
 			ci.ProxyInfos = append(ci.ProxyInfos, pi)
 		}
 		si.ClientInfos = append(si.ClientInfos, ci)
@@ -255,6 +258,7 @@ func (sc *SClient) AddProxy(dest, mark, listenPort string, isTemp bool) (*ProxyS
 func (sc *SClient) DelProxy(pid string) error {
 	if ps := sc.proxyBucket.Get(pid); ps != nil {
 		ps.(*ProxyServer).Close()
+		sc.proxyBucket.Remove(pid)
 		return nil
 	}
 	return errors.New("cant find proxyServer by id: " + pid)

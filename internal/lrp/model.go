@@ -46,7 +46,8 @@ type ServerInfo struct {
 	Version     string       `json:"version"`
 	Protocol    string       `json:"protocol"`
 	ProxyNum    int          `json:"proxyNum"`
-	TProxyNum   int          `json:"TProxyNum"`
+	TProxyNum   int          `json:"tProxyNum"`
+	ConnTotal   int          `json:"connTotal"`
 	ClientNum   int          `json:"clientNum"`
 	ExternalIp  string       `json:"externalIp"`
 	ServerPort  string       `json:"serverPort"`

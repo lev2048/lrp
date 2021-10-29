@@ -16,8 +16,13 @@ type Bucket struct {
 	data []interface{}
 }
 
-func (bt *Bucket) GetAll() []interface{} {
-	return bt.data
+func (bt *Bucket) GetAll() (res []interface{}) {
+	for _, v := range bt.data {
+		if v != nil {
+			res = append(res, v)
+		}
+	}
+	return
 }
 
 func (bt *Bucket) Get(id string) interface{} {

@@ -1,6 +1,7 @@
 package lrp
 
 import (
+	"io"
 	"lrp/internal/common"
 	nt "lrp/internal/conn"
 	"net"
@@ -17,6 +18,7 @@ type ProxyServer struct {
 	Temp            bool
 	Status          int
 	DestAddr        []byte
+	IsClosed        bool
 	Listener        net.Listener
 	ListenPort      uint16
 	ResultBucket    *common.Bucket
@@ -42,6 +44,7 @@ func NewProxyServer(id []byte, mark string, isTemp bool, conn nt.Conn, dest []by
 		Temp:            isTemp,
 		Status:          1,
 		DestAddr:        dest,
+		IsClosed:        false,
 		Listener:        ln,
 		ListenPort:      uint16(ln.Addr().(*net.TCPAddr).Port),
 		ResultBucket:    common.NewBucket(1024),
@@ -50,15 +53,18 @@ func NewProxyServer(id []byte, mark string, isTemp bool, conn nt.Conn, dest []by
 }
 
 func (ps *ProxyServer) Serve() {
-	defer ps.Listener.Close()
 	for {
 		select {
 		case <-ps.exit:
-			log.Info("proxy is closed")
 			return
 		default:
 			if conn, err := ps.Listener.Accept(); err != nil {
-				log.Warn("ProxyServer accept conn faild", err)
+				if ps.IsClosed {
+					return
+				}
+				if err != io.EOF {
+					log.Warn("ProxyServer accept conn faild", err)
+				}
 				return
 			} else {
 				go ps.handleConn(conn)
@@ -103,6 +109,7 @@ func (ps *ProxyServer) Close() {
 	for _, v := range ps.TransportBucket.GetAll() {
 		v.(*Transport).Close(true)
 	}
-	ps.TransportBucket = nil
+	ps.TransportBucket, ps.IsClosed = nil, true
+	ps.Listener.Close()
 	close(ps.exit)
 }
