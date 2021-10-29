@@ -9,8 +9,10 @@ import (
 	"encoding/binary"
 	"encoding/pem"
 	"fmt"
+	"io/ioutil"
 	"math/big"
 	"net"
+	"net/http"
 	"strconv"
 	"unsafe"
 )
@@ -114,4 +116,17 @@ func GenerateTLSConfig(title string) (*tls.Config, error) {
 		Certificates: []tls.Certificate{tlsCert},
 		NextProtos:   []string{title},
 	}, nil
+}
+
+func GetExternalIp() (string, error) {
+	resp, err := http.DefaultClient.Get("https://ip.shield.asia")
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	if res, err := ioutil.ReadAll(resp.Body); err == nil {
+		return string(res), nil
+	} else {
+		return "", err
+	}
 }

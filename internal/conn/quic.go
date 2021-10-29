@@ -6,6 +6,7 @@ import (
 	"errors"
 	"lrp/internal/common"
 	"net"
+	"strconv"
 
 	"github.com/lucas-clemente/quic-go"
 	"github.com/xtaci/smux"
@@ -54,7 +55,7 @@ func (c *QuicConn) Info() string {
 	if c.session != nil {
 		c.info = c.qsession.LocalAddr().String() + "<--quic-->" + c.qsession.RemoteAddr().String()
 	} else if c.listener != nil {
-		c.info = "kcp--" + c.listener.Addr().String()
+		c.info = strconv.Itoa(c.listener.Addr().(*net.TCPAddr).Port)
 	} else {
 		c.info = "empty kcp conn"
 	}

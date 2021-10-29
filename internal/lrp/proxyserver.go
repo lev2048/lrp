@@ -10,9 +10,12 @@ import (
 )
 
 type ProxyServer struct {
-	id              []byte
+	Id              []byte
 	exit            chan bool
 	Conn            nt.Conn
+	Mark            string
+	Temp            bool
+	Status          int
 	DestAddr        []byte
 	Listener        net.Listener
 	ListenPort      uint16
@@ -20,15 +23,24 @@ type ProxyServer struct {
 	TransportBucket *common.Bucket
 }
 
-func NewProxyServer(id []byte, conn nt.Conn, dest []byte) (*ProxyServer, error) {
-	ln, err := net.Listen("tcp", "0.0.0.0:0")
+func NewProxyServer(id []byte, mark string, isTemp bool, conn nt.Conn, dest []byte, listenPort string) (*ProxyServer, error) {
+	addr := "0.0.0.0:"
+	if listenPort != "" {
+		addr += listenPort
+	} else {
+		addr += "0"
+	}
+	ln, err := net.Listen("tcp", addr)
 	if err != nil {
 		return nil, err
 	}
 	return &ProxyServer{
-		id:              id,
+		Id:              id,
 		exit:            make(chan bool),
 		Conn:            conn,
+		Mark:            mark,
+		Temp:            isTemp,
+		Status:          1,
 		DestAddr:        dest,
 		Listener:        ln,
 		ListenPort:      uint16(ln.Addr().(*net.TCPAddr).Port),
@@ -57,7 +69,7 @@ func (ps *ProxyServer) Serve() {
 
 func (ps *ProxyServer) handleConn(conn net.Conn) {
 	tid, seq := xid.New().Bytes(), xid.New()
-	data := append(append([]byte{2}, ps.id...), tid...)
+	data := append(append([]byte{2}, ps.Id...), tid...)
 	data = append(append(data, seq.Bytes()...), ps.DestAddr...)
 	if _, err := EncodeSend(ps.Conn, data); err != nil {
 		log.Warn("send accept pk to client error", err)

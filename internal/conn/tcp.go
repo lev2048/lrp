@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net"
+	"strconv"
 )
 
 type TcpConn struct {
@@ -50,7 +51,7 @@ func (c *TcpConn) Info() string {
 	if c.conn != nil {
 		c.info = c.conn.LocalAddr().String() + "<--tcp-->" + c.conn.RemoteAddr().String()
 	} else if c.listener != nil {
-		c.info = "tcp--" + c.listener.Addr().String()
+		c.info = strconv.Itoa(c.listener.Addr().(*net.TCPAddr).Port)
 	} else {
 		c.info = "empty tcp conn"
 	}

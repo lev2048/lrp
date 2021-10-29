@@ -14,6 +14,10 @@ var (
 	log *logrus.Logger
 )
 
+const (
+	version string = "v1.0.0"
+)
+
 func init() {
 	log = logrus.New()
 	log.SetFormatter(&nested.Formatter{
@@ -21,6 +25,32 @@ func init() {
 		FieldsOrder: []string{"component", "category"},
 	})
 	log.SetOutput(os.Stdout)
+}
+
+type ProxyInfo struct {
+	Id      string `json:"id"`
+	Info    string `json:"info"`
+	Mark    string `json:"mark"`
+	Status  int    `json:"status"`
+	ConnNum int    `json:"connNum"`
+}
+
+type ClientInfo struct {
+	Id         string      `json:"id"`
+	Mark       string      `json:"mark"`
+	Online     bool        `json:"online"`
+	ProxyInfos []ProxyInfo `json:"proxyInfos"`
+}
+
+type ServerInfo struct {
+	Version     string       `json:"version"`
+	Protocol    string       `json:"protocol"`
+	ProxyNum    int          `json:"proxyNum"`
+	TProxyNum   int          `json:"TProxyNum"`
+	ClientNum   int          `json:"clientNum"`
+	ExternalIp  string       `json:"externalIp"`
+	ServerPort  string       `json:"serverPort"`
+	ClientInfos []ClientInfo `json:"clientInfos"`
 }
 
 func EncodeSend(c conn.Conn, data []byte) (int, error) {

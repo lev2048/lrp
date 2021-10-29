@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net"
+	"strconv"
 
 	"github.com/xtaci/kcp-go"
 	"github.com/xtaci/smux"
@@ -50,7 +51,7 @@ func (c *KcpConn) Info() string {
 	if c.session != nil {
 		c.info = c.session.LocalAddr().String() + "<--kcp-->" + c.session.RemoteAddr().String()
 	} else if c.listener != nil {
-		c.info = "kcp--" + c.listener.Addr().String()
+		c.info = strconv.Itoa(c.listener.Addr().(*net.TCPAddr).Port)
 	} else {
 		c.info = "empty kcp conn"
 	}

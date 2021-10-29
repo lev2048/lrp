@@ -3,6 +3,7 @@ package lrp
 import (
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"lrp/internal/common"
 	nt "lrp/internal/conn"
 	"strconv"
@@ -11,17 +12,22 @@ import (
 )
 
 type Server struct {
-	token   uint32
-	clients *common.Bucket
+	token      uint32
+	proto      string
+	clients    *common.Bucket
+	version    string
+	ListenPort string
+	ExternalIp string
 }
 
 func NewServer() *Server {
 	return &Server{
+		version: version,
 		clients: common.NewBucket(1024),
 	}
 }
 
-func (s *Server) Run(sp, proto, wp string, tk uint32) (uint32, bool) {
+func (s *Server) Run(sp, proto string, tk uint32) (uint32, bool) {
 	var err error
 	defer func() {
 		if err != nil {
@@ -41,12 +47,16 @@ func (s *Server) Run(sp, proto, wp string, tk uint32) (uint32, bool) {
 		s.token = tk
 	}
 
+	if s.ExternalIp, err = common.GetExternalIp(); err != nil {
+		return 0, false
+	}
+
 	ns, err := nt.NewConn(proto)
 	if err != nil {
 		return 0, false
 	}
 
-	ln, err := ns.Listen(sp)
+	ln, err := ns.Listen(":" + sp)
 	if err != nil {
 		return 0, false
 	}
@@ -60,6 +70,7 @@ func (s *Server) Run(sp, proto, wp string, tk uint32) (uint32, bool) {
 			}
 		}
 	}()
+	s.proto, s.ListenPort = proto, ln.Info()
 	return s.token, true
 }
 
@@ -69,7 +80,8 @@ func (s *Server) handleClient(conn nt.Conn) {
 		EncodeSend(conn, []byte{1, 1, 0})
 		return
 	}
-	id, sc := xid.New(), newSClient(conn)
+	id := xid.New()
+	sc := newSClient(conn, id.String())
 	if _, err := EncodeSend(conn, append([]byte{1, 1, 1}, id.Bytes()...)); err != nil {
 		log.Warn("send auth reply err ", err)
 		return
@@ -82,13 +94,14 @@ func (s *Server) handleClient(conn nt.Conn) {
 	sc.Serve()
 }
 
-func (s *Server) AddProxy(cid, dest string) error {
+func (s *Server) AddProxy(cid, dest, mark, listenPort string) error {
 	if client := s.clients.Get(cid); client != nil {
-		if _, err := client.(*SClient).AddProxy(dest, false); err != nil {
+		if _, err := client.(*SClient).AddProxy(dest, mark, listenPort, false); err != nil {
 			return err
 		}
+		return nil
 	}
-	return nil
+	return errors.New("cant find client id")
 }
 
 func (s *Server) DelProxy(cid, pid string) error {
@@ -100,15 +113,61 @@ func (s *Server) DelProxy(cid, pid string) error {
 	return nil
 }
 
-func (s *Server) GetClientList() {}
+func (s *Server) CheckToken(value uint32) bool {
+	return s.token == value
+}
+
+func (s *Server) GetServerInfo() ServerInfo {
+	si := ServerInfo{
+		Version:     s.version,
+		Protocol:    s.proto,
+		ProxyNum:    0,
+		TProxyNum:   0,
+		ClientNum:   0,
+		ExternalIp:  s.ExternalIp,
+		ServerPort:  s.ListenPort,
+		ClientInfos: make([]ClientInfo, 0),
+	}
+	for _, c := range s.clients.GetAll() {
+		si.ClientNum++
+		client := c.(*SClient)
+		ci := ClientInfo{
+			Id:         client.id,
+			Mark:       "",
+			Online:     client.online,
+			ProxyInfos: make([]ProxyInfo, 0),
+		}
+		for _, p := range client.proxyBucket.GetAll() {
+			ps := p.(*ProxyServer)
+			if !ps.Temp {
+				si.ProxyNum++
+			} else {
+				si.TProxyNum++
+			}
+			pi := ProxyInfo{
+				Id:      common.XidToString(ps.Id),
+				Info:    fmt.Sprintf("%s:%d => %s", si.ExternalIp, ps.ListenPort, common.AddrByteToString(ps.DestAddr)),
+				Mark:    "",
+				Status:  ps.Status,
+				ConnNum: len(ps.TransportBucket.GetAll()),
+			}
+			ci.ProxyInfos = append(ci.ProxyInfos, pi)
+		}
+		si.ClientInfos = append(si.ClientInfos, ci)
+	}
+	return si
+}
 
 type SClient struct {
+	id          string
 	conn        nt.Conn
+	online      bool
 	proxyBucket *common.Bucket
 }
 
-func newSClient(conn nt.Conn) *SClient {
+func newSClient(conn nt.Conn, id string) *SClient {
 	return &SClient{
+		id:          id,
 		conn:        conn,
 		proxyBucket: common.NewBucket(200),
 	}
@@ -146,7 +205,7 @@ func (sc *SClient) Serve() {
 					log.Warn("cant find ps exit..")
 				}
 			case 4:
-				if ps, err := sc.AddProxy(common.AddrByteToString(data[1:]), true); err != nil {
+				if ps, err := sc.AddProxy(common.AddrByteToString(data[1:]), "temp", "", true); err != nil {
 					EncodeSend(sc.conn, []byte{1, 3, 0})
 					log.Warn("client request create temp proxy failed..: ", err)
 				} else {
@@ -178,12 +237,12 @@ func (sc *SClient) Serve() {
 	}
 }
 
-func (sc *SClient) AddProxy(dest string, isTemp bool) (*ProxyServer, error) {
+func (sc *SClient) AddProxy(dest, mark, listenPort string, isTemp bool) (*ProxyServer, error) {
 	if destAddr, err := common.AddrStringToByte(dest, "tcp"); err != nil {
 		return nil, err
 	} else {
 		pid := xid.New()
-		if ps, err := NewProxyServer(pid.Bytes(), sc.conn, destAddr); err != nil {
+		if ps, err := NewProxyServer(pid.Bytes(), mark, isTemp, sc.conn, destAddr, listenPort); err != nil {
 			return nil, err
 		} else {
 			sc.proxyBucket.Set(pid.String(), ps)
