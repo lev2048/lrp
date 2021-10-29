@@ -3,20 +3,35 @@ package main
 import (
 	"flag"
 	"lrp/internal/lrp"
+	"lrp/internal/status"
+	"lrp/internal/web"
+	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
+	"time"
 
 	nested "github.com/antonfisher/nested-logrus-formatter"
+	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+)
+
+const (
+	Secret          string = "gms90k3g6ej3"
+	AppMode         string = "release"
+	ApiReadTimeout  int    = 120
+	ApiWriteTimeout int    = 120
 )
 
 var (
 	log        *logrus.Logger
+	sig        chan os.Signal = make(chan os.Signal, 1)
 	token      int
 	proto      string
-	serverAddr string
-	webSerAddr string
+	monitor    *status.Monitor = status.NewMonitor()
+	serverPort int
+	webSerPort int
 )
 
 func init() {
@@ -29,26 +44,52 @@ func init() {
 
 	flag.IntVar(&token, "token", 0, "authentication key")
 	flag.StringVar(&proto, "proto", "tcp", "protocol [ tcp , kcp , quic ]")
-	flag.StringVar(&serverAddr, "server", "0.0.0.0:8801", "input server addr")
-	flag.StringVar(&webSerAddr, "web", "0.0.0.0:8802", "input web server addr")
+	flag.IntVar(&serverPort, "server", 8801, "input server addr")
+	flag.IntVar(&webSerPort, "web", 0, "input web server addr")
 }
 
 func main() {
 	flag.Parse()
 	server := lrp.NewServer()
-	if tk, ok := server.Run(serverAddr, proto, webSerAddr, uint32(token)); !ok {
+	if tk, ok := server.Run(strconv.Itoa(serverPort), proto, uint32(token)); !ok {
 		log.Error("server start failed exit")
 		return
 	} else {
 		log.Info("server start successful")
 		log.Info("access token: ", tk)
 		log.Info("server proto: ", proto)
-		log.Info("server  addr: ", serverAddr)
-		log.Info("webser  addr: ", webSerAddr)
+		log.Info("server  port: ", serverPort)
 	}
-	sig := make(chan os.Signal, 1)
+	if webSerPort != 0 {
+		sp := strconv.Itoa(webSerPort)
+		log.Info("web server start ...")
+		gin.SetMode(AppMode)
+		engine := gin.New()
+		api := web.NewApi(server, engine, monitor, Secret)
+		httpServer := &http.Server{
+			Addr:         ":" + sp,
+			Handler:      engine,
+			ReadTimeout:  time.Duration(ApiReadTimeout) * time.Second,
+			WriteTimeout: time.Duration(ApiWriteTimeout) * time.Second,
+		}
+		api.SetRouter()
+		go func() {
+			if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				log.Warn("web server start faild: ", err)
+				sig <- syscall.SIGTERM
+			}
+		}()
+		monitor.Start()
+		log.Info("web server start successful ")
+		log.Info("web url: ", "http://"+server.ExternalIp+":"+sp)
+	}
 	signal.Notify(sig, syscall.SIGTERM, syscall.SIGINT)
 	<-sig
 	log.Info("server shutdown ...")
-	log.Info("exit")
+	//todo close server
+	if webSerPort != 0 {
+		log.Info("close monitor ...")
+		monitor.Stop()
+	}
+	log.Info("done")
 }
