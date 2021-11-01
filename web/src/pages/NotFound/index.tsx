@@ -1,8 +1,7 @@
 import React from 'react';
 
 const NotFound:React.FunctionComponent =(): JSX.Element => {
-    return 
-    <div>
+    return <div>
         <h1>404 Not Found </h1>
         <div>
             Sorry, Page can not be found or page is missing, please check the URL you entered is correct.

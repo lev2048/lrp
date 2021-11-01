@@ -1,0 +1,271 @@
+.dashBoard {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    position: absolute;
+    overflow: hidden;
+    flex-direction: row;
+    background-color: #f5f7fb;
+}
+
+.menu {
+    width: 130px;
+    margin: 15px;
+    background-color: #fefefe;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgb(107 147 205 / 15%);
+}
+
+.menuLogo {
+    width: 65px;
+    height: 70px;
+    margin-left: 13px;
+    margin-right: 13px;
+    margin-top: 20px;
+    border-radius: 10px;
+}
+
+.menuItem {
+    width: 65px;
+    height: 65px;
+    color: #a9a0be;
+    margin-top: 30px;
+    margin-left: 13px;
+}
+
+.menuItem :hover {
+    color: #5a52ba;
+}
+
+.selected {
+    color: #5a52ba;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgb(231 231 239 / 83%);
+}
+
+.logout {
+    width: 65px;
+    height: 65px;
+    color: #a9a0be;
+    bottom: 30px;
+    margin-top: 30px;
+    margin-left: 13px;
+    position: absolute;
+}
+
+.logout :hover {
+    color: #F56C6C;
+}
+
+.logout>svg {
+    width: 100%;
+    height: 50%;
+    margin-top: 15px;
+}
+
+.menuItem>svg {
+    width: 100%;
+    height: 50%;
+    margin-top: 15px;
+}
+
+.content {
+    width: 100%;
+    display: flex;
+    margin-top: 10px;
+    margin-bottom: 15px;
+    margin-left: 0.5%;
+    margin-right: 0.5%;
+    flex-wrap: nowrap;
+    flex-direction: column;
+}
+
+.contentTitle {
+    display: flex;
+    flex-direction: row;
+    font-size: 19px;
+    font-weight: 700;
+}
+
+.contentTitleName {
+    color: #a1a2af;
+}
+
+.systemName {
+    width: 53%;
+    color: #414347;
+    font-size: 30px;
+    line-height: 50px;
+    font-weight: 700;
+    padding-left: 20px;
+}
+
+.contentWidget {
+    width: 100%;
+    height: 120px;
+    margin-top: 25px;
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: row;
+}
+
+.traffic {
+    width: 22%;
+    height: 90%;
+    margin-top: 0.5%;
+    margin-left: 1.5%;
+    border-radius: 15px;
+    background-color: #ffffff;
+    box-shadow: 0 3px 10px rgb(107 147 205 / 15%);
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+}
+
+.trafficIcon {
+    width: 80px;
+    height: 80px;
+    color: #626589;
+    margin-left: 7%;
+    border-radius: 80px;
+    background-color: #e9eafb;
+}
+
+.trafficIcon>svg {
+    width: 60%;
+    height: 60%;
+    margin: 20%;
+}
+
+.trafficInfo {
+    width: 50%;
+    margin-left: 25px;
+    font-size: 25px;
+    font-weight: 700;
+}
+
+.trafficTitle {
+    color: #a1a2af;
+}
+
+.proxyInfo {
+    width: 50%;
+    height: 90%;
+    border-radius: 15px;
+    background-color: #ffffff;
+    margin-top: 0.5%;
+    margin-left: 2.5%;
+    display: flex;
+    justify-content: space-evenly;
+    font-size: 25px;
+    font-weight: 700;
+    text-align: center;
+    align-items: center;
+    box-shadow: 0 3px 10px rgb(107 147 205 / 15%);
+}
+
+.proxyItemTitle {
+    color: #a1a2af;
+}
+
+.splitLine {
+    height: 60px;
+    width: 4px;
+    border-radius: 2px;
+    background-color: #b3a7d7;
+}
+
+.serverInfo {
+    width: 535px;
+    margin: 15px;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    border-radius: 20px;
+    background-color: #fefefe;
+    box-shadow: 0 3px 10px rgb(107 147 205 / 15%);
+}
+
+.infoItem {
+    display: flex;
+    flex-direction: row;
+    margin-top: 25px;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.infoIcon {
+    width: 80px;
+    height: 80px;
+    box-shadow: 0 3px 20px rgb(93 108 131 / 42%);
+    border-radius: 15px;
+}
+
+.infoIcon>svg {
+    width: 50%;
+    height: 50%;
+    margin: 25%;
+    color: #5a52b8;
+}
+
+.infoTitle {
+    color: #a1a2af;
+    margin-top: 10px;
+    margin-bottom: 8px;
+}
+
+.infoText {
+    margin-left: 35px;
+}
+
+.InfoTitle {
+    font-size: 25px;
+    font-weight: 700;
+}
+
+.clientItem {
+    margin-top: 15px;
+    width: 100%;
+    height: 90px;
+    border-radius: 15px;
+    box-shadow: 0 3px 10px rgb(107 147 205 / 37%);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.clientStatus {
+    width: 8px;
+    height: 50px;
+    border-radius: 10px;
+    position: relative;
+    left: -4px;
+}
+
+.online {
+    background-color: #409EFF;
+}
+
+.offline {
+    background-color: #F56C6C;
+}
+
+.clientInfo {
+    margin-left: 5%;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.clientProxy {
+    width: 60px;
+    height: 60px;
+    background-color: #e9eafb;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: black;
+    font-weight: 700;
+    margin-left: 60px;
+    line-height: 30px;
+}
