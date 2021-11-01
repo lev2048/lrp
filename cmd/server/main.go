@@ -2,9 +2,9 @@ package main
 
 import (
 	"flag"
+	"lrp/internal/api"
 	"lrp/internal/lrp"
 	"lrp/internal/status"
-	"lrp/internal/web"
 	"net/http"
 	"os"
 	"os/signal"
@@ -65,7 +65,7 @@ func main() {
 		log.Info("web server start ...")
 		gin.SetMode(AppMode)
 		engine := gin.New()
-		api := web.NewApi(server, engine, monitor, Secret)
+		api := api.NewApi(server, engine, monitor, Secret)
 		httpServer := &http.Server{
 			Addr:         ":" + sp,
 			Handler:      engine,
