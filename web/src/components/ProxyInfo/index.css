@@ -1,0 +1,26 @@
+.proxyInfo {
+    width: 50%;
+    height: 90%;
+    border-radius: 15px;
+    background-color: #ffffff;
+    margin-top: 0.5%;
+    margin-left: 2.5%;
+    display: flex;
+    justify-content: space-evenly;
+    font-size: 25px;
+    font-weight: 700;
+    text-align: center;
+    align-items: center;
+    box-shadow: 0 3px 10px rgb(107 147 205 / 15%);
+}
+
+.proxyItemTitle {
+    color: #a1a2af;
+}
+
+.splitLine {
+    height: 60px;
+    width: 4px;
+    border-radius: 2px;
+    background-color: #b3a7d7;
+}

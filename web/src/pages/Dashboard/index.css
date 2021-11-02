@@ -8,67 +8,6 @@
     background-color: #f5f7fb;
 }
 
-.menu {
-    width: 130px;
-    margin: 15px;
-    background-color: #fefefe;
-    border-radius: 10px;
-    box-shadow: 0 3px 10px rgb(107 147 205 / 15%);
-}
-
-.menuLogo {
-    width: 65px;
-    height: 70px;
-    margin-left: 13px;
-    margin-right: 13px;
-    margin-top: 20px;
-    border-radius: 10px;
-}
-
-.menuItem {
-    width: 65px;
-    height: 65px;
-    color: #a9a0be;
-    margin-top: 30px;
-    margin-left: 13px;
-}
-
-.menuItem :hover {
-    color: #5a52ba;
-}
-
-.selected {
-    color: #5a52ba;
-    border-radius: 10px;
-    box-shadow: 0 3px 10px rgb(231 231 239 / 83%);
-}
-
-.logout {
-    width: 65px;
-    height: 65px;
-    color: #a9a0be;
-    bottom: 30px;
-    margin-top: 30px;
-    margin-left: 13px;
-    position: absolute;
-}
-
-.logout :hover {
-    color: #F56C6C;
-}
-
-.logout>svg {
-    width: 100%;
-    height: 50%;
-    margin-top: 15px;
-}
-
-.menuItem>svg {
-    width: 100%;
-    height: 50%;
-    margin-top: 15px;
-}
-
 .content {
     width: 100%;
     display: flex;
@@ -80,15 +19,11 @@
     flex-direction: column;
 }
 
-.contentTitle {
+.contentHeader {
     display: flex;
-    flex-direction: row;
     font-size: 19px;
     font-weight: 700;
-}
-
-.contentTitleName {
-    color: #a1a2af;
+    flex-direction: row;
 }
 
 .systemName {
@@ -100,6 +35,14 @@
     padding-left: 20px;
 }
 
+.systemInfo {
+    width: 28%;
+}
+
+.systemInfoTitle {
+    color: #a1a2af;
+}
+
 .contentWidget {
     width: 100%;
     height: 120px;
@@ -107,72 +50,6 @@
     display: flex;
     flex-wrap: nowrap;
     flex-direction: row;
-}
-
-.traffic {
-    width: 22%;
-    height: 90%;
-    margin-top: 0.5%;
-    margin-left: 1.5%;
-    border-radius: 15px;
-    background-color: #ffffff;
-    box-shadow: 0 3px 10px rgb(107 147 205 / 15%);
-    display: flex;
-    align-items: center;
-    flex-direction: row;
-}
-
-.trafficIcon {
-    width: 80px;
-    height: 80px;
-    color: #626589;
-    margin-left: 7%;
-    border-radius: 80px;
-    background-color: #e9eafb;
-}
-
-.trafficIcon>svg {
-    width: 60%;
-    height: 60%;
-    margin: 20%;
-}
-
-.trafficInfo {
-    width: 50%;
-    margin-left: 25px;
-    font-size: 25px;
-    font-weight: 700;
-}
-
-.trafficTitle {
-    color: #a1a2af;
-}
-
-.proxyInfo {
-    width: 50%;
-    height: 90%;
-    border-radius: 15px;
-    background-color: #ffffff;
-    margin-top: 0.5%;
-    margin-left: 2.5%;
-    display: flex;
-    justify-content: space-evenly;
-    font-size: 25px;
-    font-weight: 700;
-    text-align: center;
-    align-items: center;
-    box-shadow: 0 3px 10px rgb(107 147 205 / 15%);
-}
-
-.proxyItemTitle {
-    color: #a1a2af;
-}
-
-.splitLine {
-    height: 60px;
-    width: 4px;
-    border-radius: 2px;
-    background-color: #b3a7d7;
 }
 
 .serverInfo {
