@@ -1,17 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { BsFillMenuAppFill, BsArrowBarDown, BsArrowBarUp, BsCpuFill } from "react-icons/bs";
+import { BsFillMenuAppFill, BsArrowBarDown, BsArrowBarUp, BsCpuFill,BsPlusCircleDotted } from "react-icons/bs";
 import { MdSettingsPower, MdOutlineDataSaverOff, MdOutlineSelectAll } from "react-icons/md";
+import { BiPlanet,BiTerminal,BiTrash } from "react-icons/bi";
+import {Menu} from "../../components";
 import "./index.css"
 
 const Dashboard: React.FunctionComponent = (): JSX.Element => {
     return <div className="dashBoard">
-        <div className="menu">
-            <div style={{ paddingBottom: '10px' }}>
-                <img className="menuLogo" src="/images/logo.png" alt="" />
-            </div>
-            <div className="menuItem selected"><BsFillMenuAppFill /></div>
-            <div className="logout"><MdSettingsPower /></div>
-        </div>
+        <Menu/>
         <div className="content">
             <div className="contentTitle">
                 <div className="systemName">Lrp DashBord</div>
@@ -60,7 +56,32 @@ const Dashboard: React.FunctionComponent = (): JSX.Element => {
                     </div>
                 </div>
             </div>
-            <div className="contentProxyList"></div>
+            <div className="contentProxyList">
+                <div className="proxyListHeader">
+                    <div className="InfoTitle">ProxyList</div>
+                    <div className="proxyAdd"><BsPlusCircleDotted/></div>
+                </div>
+                <div className="proxyListContent">
+                    <div className="proxyListItem">
+                        <div className="proxyIcon"><BiPlanet/></div>
+                        <div style={{ width: '21%' }}>c5tuk9b765s2jfnbtfog</div>
+                        <div style={{ width: '30%' }}>10.0.0.220:8801 = 10.0.0.1:80</div>
+                        <div style={{ width: '10%' }}>30 conn</div>
+                        <div className="proxyStatus">Running</div>
+                        <div className="proxyDel"><BiTrash/></div>
+                    </div>
+                </div>
+                <div className="proxyListContent">
+                    <div className="proxyListItem">
+                        <div className="proxyIcon"><BiTerminal/></div>
+                        <div style={{ width: '21%' }}>c5tuk9b765s2jfnbtfog</div>
+                        <div style={{ width: '30%' }}>10.0.0.220:8801 = 10.0.0.1:80</div>
+                        <div style={{ width: '10%' }}>30 conn</div>
+                        <div className="proxyStatus">Running</div>
+                        <div className="proxyDel"><BiTrash/></div>
+                    </div>
+                </div>
+            </div>
         </div>
         <div className="serverInfo">
             <div className="InfoTitle">Information</div>
@@ -93,7 +114,7 @@ const Dashboard: React.FunctionComponent = (): JSX.Element => {
                     </div>
                 </div>
             </div>
-            <div className="InfoTitle" style={{marginTop:'35px'}}>ClientList</div>
+            <div className="InfoTitle" style={{ marginTop: '35px' }}>ClientList</div>
             <div className="clientList">
                 <div className="clientItem">
                     <div className="clientStatus online"></div>
@@ -103,8 +124,8 @@ const Dashboard: React.FunctionComponent = (): JSX.Element => {
                         <div>id: c5tuk9b765s2jfnbtfog</div>
                     </div>
                     <div className="clientProxy">
-                       <div>Proxy</div>
-                       <div>1</div> 
+                        <div>Proxy</div>
+                        <div>1</div>
                     </div>
                 </div>
                 <div className="clientItem">
@@ -115,8 +136,8 @@ const Dashboard: React.FunctionComponent = (): JSX.Element => {
                         <div>id: c5tuk9b765s2jfnbtfag</div>
                     </div>
                     <div className="clientProxy">
-                       <div>Proxy</div>
-                       <div>4</div> 
+                        <div>Proxy</div>
+                        <div>4</div>
                     </div>
                 </div>
             </div>

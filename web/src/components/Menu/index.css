@@ -1,0 +1,57 @@
+.menu {
+    width: 130px;
+    margin: 15px;
+    border-radius: 10px;
+    background-color: #fefefe;
+    box-shadow: 0 3px 10px rgb(107 147 205 / 15%);
+}
+
+.Logo {
+    width: 65px;
+    height: 70px;
+    margin: 20px 13px 0 13px;
+}
+
+.Logo>img {
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+}
+
+.Item {
+    width: 65px;
+    height: 65px;
+    color: #a9a0be;
+    margin-top: 30px;
+    margin-left: 13px;
+}
+
+.Item>svg {
+    width: 100%;
+    height: 50%;
+    margin-top: 15px;
+}
+
+.Item :hover {
+    color: #5a52ba;
+}
+
+.selected {
+    color: #5a52ba;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgb(231 231 239 / 83%);
+}
+
+.logout {
+    width: 65px;
+    height: 65px;
+    color: #a9a0be;
+    bottom: 30px;
+    margin-top: 30px;
+    margin-left: 13px;
+    position: absolute;
+}
+
+.logout :hover {
+    color: #F56C6C;
+}
