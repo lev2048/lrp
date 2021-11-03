@@ -7,6 +7,7 @@ interface IProps {
     tproxyNum: number
     clientNum: number
 }
+
 const ProxyInfo: React.FunctionComponent<IProps> = (props:IProps): JSX.Element => {
     return (
         <div className="proxyInfo">

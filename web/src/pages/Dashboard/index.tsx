@@ -1,24 +1,55 @@
 import React from 'react';
-import { Menu,TrafficInfo,ProxyInfo,ProxyList,ServerPanel } from "../../components";
+import axios from 'axios';
+import useSWR from 'swr';
+import { Menu, TrafficInfo, ProxyInfo, ProxyList, ServerPanel } from "../../components";
 import "./index.css"
 
 interface ServerStatus {
-    Cpu: string
-    Mem: string
-    TotalUpload: string
-    TotalDownload: string
-    TotalTrafficUse: string
+    cpu: string
+    mem: string
+    upload: string
+    download: string
+    totalUpload: string
+    totalDownload: string
+    totalTrafficUse: string
 }
 
+interface ProxyInfo {
+    id: string;
+    info: string;
+    mark: string;
+    isTemp: boolean;
+    status: number;
+    connNum: number;
+}
+
+interface ClientInfo {
+    id: string;
+    ip: string;
+    mark: string;
+    online: boolean;
+    proxyInfos: ProxyInfo[];
+}
+
+interface ServerInfo {
+    version: string;
+    protocol: string;
+    proxyNum: number;
+    tProxyNum: number;
+    connTotal: number;
+    clientNum: number;
+    externalIp: string;
+    serverPort: string;
+    clientInfos: ClientInfo[];
+}
+
+const getStatus = (url: string) => axios.get(url).then((res: any) => res.data.info as ServerStatus)
+const getServerInfo = (url: string) => axios.get(url).then((res: any) => res.data.info as ServerInfo)
+
 const Dashboard: React.FunctionComponent = (): JSX.Element => {
-    let status:ServerStatus = {
-        Cpu: "20%",
-        Mem: "30%",
-        TotalUpload: "10 GB",
-        TotalDownload: "10 GB",
-        TotalTrafficUse: "20 GB",
-    };
-    
+    const [status]: [status: ServerStatus,error: any] = useSWR('/v1/status', getStatus, { refreshInterval: 1000 }) as any;
+    const [serverInfo]: [serverInfo: ServerInfo,error: any] = useSWR('/v1/dashbord', getServerInfo, { refreshInterval: 5000 }) as any;
+
     return (
         <div className="dashBoard">
             <Menu />
@@ -27,21 +58,21 @@ const Dashboard: React.FunctionComponent = (): JSX.Element => {
                     <div className="systemName">Lrp DashBord</div>
                     <div className="systemInfo">
                         <div className="systemInfoTitle">External IP Address</div>
-                        <div>10.0.0.1</div>
+                        <div>{serverInfo.externalIp}</div>
                     </div>
                     <div style={{ width: '28%' }}>
                         <div className="systemInfoTitle">Software Version</div>
-                        <div>v1.0.0</div>
+                        <div>{serverInfo.version}</div>
                     </div>
                 </div>
                 <div className="contentWidget">
-                    <TrafficInfo info="12 MB/S" direction="up"/>
-                    <TrafficInfo info="48 MB/S" direction="down"/>
-                    <ProxyInfo connNum={30} proxyNum={10} tproxyNum={5} clientNum={5}/>
+                    <TrafficInfo info={status.upload} direction="up" />
+                    <TrafficInfo info={status.download} direction="down" />
+                    <ProxyInfo connNum={30} proxyNum={10} tproxyNum={5} clientNum={5} />
                 </div>
-                <ProxyList data={[]}/>
+                <ProxyList data={serverInfo.clientInfos} />
             </div>
-            <ServerPanel status={status} clients={[]} />
+            <ServerPanel status={status} clients={serverInfo.clientInfos} />
         </div>
     );
 }

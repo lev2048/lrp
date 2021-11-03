@@ -4,19 +4,19 @@ import { MdOutlineDataSaverOff, MdOutlineSelectAll } from "react-icons/md";
 import "./index.css";
 
 interface ServerStatus {
-    Cpu: string
-    Mem: string
-    TotalUpload: string
-    TotalDownload: string
-    TotalTrafficUse: string
+    cpu: string
+    mem: string
+    totalUpload: string
+    totalDownload: string
+    totalTrafficUse: string
 }
 
 interface ClientInfo {
-    Id: string
-    Ip: string
-    Mark: string
-    IsOnline: boolean
-    ProxyNum: number
+    id: string
+    ip: string
+    mark: string
+    online: boolean
+    proxyInfos: any
 }
 
 interface IProps {
@@ -27,15 +27,15 @@ interface IProps {
 const ServerPanel: React.FunctionComponent<IProps> = (props: IProps): JSX.Element => {
     let clients: JSX.Element[] = props.clients?.map((v, k) => (
         <div className="clientItem" key={k}>
-            <div className={`clientStatus ${v.IsOnline ? "online" : "offline"}`}></div>
+            <div className={`clientStatus ${v.online ? "online" : "offline"}`}></div>
             <div className="clientInfo">
-                <div>mk: {v.Mark && v.Id.substr(0, 4)}</div>
-                <div>ip: {v.Ip}</div>
-                <div>id: {v.Id}</div>1
+                <div>mk: {v.mark && v.id.substr(0, 4)}</div>
+                <div>ip: {v.ip}</div>
+                <div>id: {v.id}</div>1
             </div>
             <div className="clientProxy">
                 <div>Proxy</div>
-                <div>{v.ProxyNum}</div>
+                <div>{v.proxyInfos.length}</div>
             </div>
         </div>
     ))
@@ -48,7 +48,7 @@ const ServerPanel: React.FunctionComponent<IProps> = (props: IProps): JSX.Elemen
                 </div>
                 <div className="infoText">
                     <div className="infoTitle">Cpu</div>
-                    <div>{props.status.Cpu}</div>
+                    <div>{props.status.cpu}</div>
                 </div>
             </div>
             <div className="infoItem">
@@ -57,7 +57,7 @@ const ServerPanel: React.FunctionComponent<IProps> = (props: IProps): JSX.Elemen
                 </div>
                 <div className="infoText">
                     <div className="infoTitle">Mem</div>
-                    <div>{props.status.Mem}</div>
+                    <div>{props.status.mem}</div>
                 </div>
             </div>
             <div className="infoItem">
@@ -66,7 +66,7 @@ const ServerPanel: React.FunctionComponent<IProps> = (props: IProps): JSX.Elemen
                 </div>
                 <div className="infoText">
                     <div className="infoTitle">DataUse</div>
-                        <div>{props.status.TotalTrafficUse} [ {props.status.TotalUpload} / {props.status.TotalDownload} ]</div>
+                        <div>{props.status.totalTrafficUse} [ {props.status.totalUpload} / {props.status.totalDownload} ]</div>
                 </div>
             </div>
             <div className="InfoTitle">ClientList</div>

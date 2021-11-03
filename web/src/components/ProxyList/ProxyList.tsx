@@ -4,8 +4,7 @@ import { BiPlanet, BiTrash, BiTerminal } from "react-icons/bi";
 import "./index.css";
 
 interface ProxyInfo {
-    cid: string
-    pid: string
+    id: string
     info: string
     mark: string
     status: number
@@ -13,15 +12,28 @@ interface ProxyInfo {
     connNum: number
 }
 
+interface Client {
+    id: string;
+    mark: string;
+    online: boolean;
+    proxyInfos: ProxyInfo[];
+}
+
 interface IProps {
-    data: ProxyInfo[]
+    data: Client[]
 }
 
 const ProxyList: React.FunctionComponent<IProps> = (props: IProps): JSX.Element => {
-    let content: JSX.Element[] = props.data.map((v, k) => (
+    let proxyList: ProxyInfo[] = [];
+    props.data.forEach((c: Client)=>{
+        if (c.online){
+            proxyList = proxyList.concat(c.proxyInfos)
+        }
+    });
+    let content: JSX.Element[] = proxyList.map((v, k) => (
         <div className="proxyListItem" key={k}>
             <div className="proxyIcon">{v.isTemp ? <BiTerminal /> : <BiPlanet />}</div>
-            <div style={{ width: '21%' }}>{v.mark !== "" ? v.mark : v.pid}</div>
+            <div style={{ width: '21%' }}>{v.mark !== "" ? v.mark : v.id}</div>
             <div style={{ width: '30%' }}>{v.info}</div>
             <div style={{ width: '10%' }}>{v.connNum} conn</div>
             <div className="proxyStatus">{v.status === 1 ? "Running" : "Warning"}</div>
