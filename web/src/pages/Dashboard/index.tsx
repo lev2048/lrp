@@ -16,6 +16,7 @@ interface ServerStatus {
 
 interface Proxy {
     id: string;
+    cid: string;
     info: string;
     mark: string;
     isTemp: boolean;
