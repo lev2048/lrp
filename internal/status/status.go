@@ -9,12 +9,13 @@ import (
 )
 
 type Data struct {
-	Cpu           string `json:"cpu"`
-	Mem           string `json:"mem"`
-	Upload        string `json:"upload"`
-	Download      string `json:"download"`
-	TotalUpload   string `json:"totalUpload"`
-	TotalDownload string `json:"totalDownload"`
+	Cpu             string `json:"cpu"`
+	Mem             string `json:"mem"`
+	Upload          string `json:"upload"`
+	Download        string `json:"download"`
+	TotalUpload     string `json:"totalUpload"`
+	TotalDownload   string `json:"totalDownload"`
+	TotalTrafficUse string `json:"totalTrafficUse"`
 }
 
 type Monitor struct {
@@ -50,6 +51,7 @@ func (m *Monitor) Start() {
 					agent.UnitConver(float64(data.NetworkRx)) + "/s",
 					agent.UnitConver(float64(data.NetworkOut)),
 					agent.UnitConver(float64(data.NetworkIn)),
+					agent.UnitConver(float64(data.NetworkIn + data.NetworkOut)),
 				}
 				time.Sleep(time.Duration(1) * time.Second)
 			}

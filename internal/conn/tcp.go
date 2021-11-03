@@ -49,7 +49,7 @@ func (c *TcpConn) Info() string {
 		return c.info
 	}
 	if c.conn != nil {
-		c.info = c.conn.LocalAddr().String() + "<--tcp-->" + c.conn.RemoteAddr().String()
+		c.info = c.conn.RemoteAddr().String()
 	} else if c.listener != nil {
 		c.info = strconv.Itoa(c.listener.Addr().(*net.TCPAddr).Port)
 	} else {

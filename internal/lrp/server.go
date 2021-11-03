@@ -135,6 +135,7 @@ func (s *Server) GetServerInfo() ServerInfo {
 		client := c.(*SClient)
 		ci := ClientInfo{
 			Id:         client.id,
+			Ip:         client.ip,
 			Mark:       "",
 			Online:     client.online,
 			ProxyInfos: make([]ProxyInfo, 0),
@@ -150,6 +151,7 @@ func (s *Server) GetServerInfo() ServerInfo {
 				Id:      common.XidToString(ps.Id),
 				Info:    fmt.Sprintf("%s:%d => %s", si.ExternalIp, ps.ListenPort, common.AddrByteToString(ps.DestAddr)),
 				Mark:    "",
+				IsTemp:  ps.Temp,
 				Status:  ps.Status,
 				ConnNum: len(ps.TransportBucket.GetAll()),
 			}
@@ -163,6 +165,7 @@ func (s *Server) GetServerInfo() ServerInfo {
 
 type SClient struct {
 	id          string
+	ip          string
 	conn        nt.Conn
 	online      bool
 	proxyBucket *common.Bucket
@@ -171,6 +174,8 @@ type SClient struct {
 func newSClient(conn nt.Conn, id string) *SClient {
 	return &SClient{
 		id:          id,
+		ip:          conn.Info(),
+		online:      true,
 		conn:        conn,
 		proxyBucket: common.NewBucket(200),
 	}

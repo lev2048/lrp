@@ -1,5 +1,6 @@
 import React from 'react';
 import { BsCpuFill } from "react-icons/bs";
+import {BiUpArrowAlt,BiDownArrowAlt}from "react-icons/bi";
 import { MdOutlineDataSaverOff, MdOutlineSelectAll } from "react-icons/md";
 import "./index.css";
 
@@ -29,9 +30,9 @@ const ServerPanel: React.FunctionComponent<IProps> = (props: IProps): JSX.Elemen
         <div className="clientItem" key={k}>
             <div className={`clientStatus ${v.online ? "online" : "offline"}`}></div>
             <div className="clientInfo">
-                <div>mk: {v.mark && v.id.substr(0, 4)}</div>
+                <div>{v.mark === "" && v.id.substr(0, 4)}</div>
                 <div>ip: {v.ip}</div>
-                <div>id: {v.id}</div>1
+                <div>id: {v.id}</div>
             </div>
             <div className="clientProxy">
                 <div>Proxy</div>
@@ -66,12 +67,16 @@ const ServerPanel: React.FunctionComponent<IProps> = (props: IProps): JSX.Elemen
                 </div>
                 <div className="infoText">
                     <div className="infoTitle">DataUse</div>
-                        <div>{props.status.totalTrafficUse} [ {props.status.totalUpload} / {props.status.totalDownload} ]</div>
+                        <div>{props.status.totalTrafficUse}</div>
+                        <div className="dataUse">
+                            <BiUpArrowAlt className="dataUseUp"/>{props.status.totalUpload}
+                            <BiDownArrowAlt className="dataUseDown"/>{props.status.totalDownload}
+                        </div>
                 </div>
             </div>
             <div className="InfoTitle">ClientList</div>
             <div className="clientList">
-                {clients && <div className="clientEmpty"><img src="/images/noClient.png" alt=""></img></div>}
+                {clients ? clients: <div className="clientEmpty"><img src="/images/noClient.png" alt=""></img></div>}
             </div>
         </div>
     );

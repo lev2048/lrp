@@ -31,12 +31,14 @@ type ProxyInfo struct {
 	Id      string `json:"id"`
 	Info    string `json:"info"`
 	Mark    string `json:"mark"`
+	IsTemp  bool   `json:"isTemp"`
 	Status  int    `json:"status"`
 	ConnNum int    `json:"connNum"`
 }
 
 type ClientInfo struct {
 	Id         string      `json:"id"`
+	Ip         string      `json:"ip"`
 	Mark       string      `json:"mark"`
 	Online     bool        `json:"online"`
 	ProxyInfos []ProxyInfo `json:"proxyInfos"`

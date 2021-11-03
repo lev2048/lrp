@@ -25,8 +25,8 @@ interface IProps {
 
 const ProxyList: React.FunctionComponent<IProps> = (props: IProps): JSX.Element => {
     let proxyList: ProxyInfo[] = [];
-    props.data.forEach((c: Client)=>{
-        if (c.online){
+    props.data.forEach((c: Client) => {
+        if (c.online) {
             proxyList = proxyList.concat(c.proxyInfos)
         }
     });
@@ -47,7 +47,7 @@ const ProxyList: React.FunctionComponent<IProps> = (props: IProps): JSX.Element 
                 <div className="proxyAdd"><BsPlusCircleDotted /></div>
             </div>
             <div className="proxyListContent">
-                {content && (<div className="emptyContent"><img src="/images/empty.png" alt="" /></div>)}
+                {content ? content : (<div className="emptyContent"><img src="/images/empty.png" alt="" /></div>)}
             </div>
         </div>
     );

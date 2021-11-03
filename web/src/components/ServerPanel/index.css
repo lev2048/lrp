@@ -81,6 +81,7 @@
     margin-left: 5%;
     font-size: 15px;
     font-weight: 700;
+    width: 70%;
 }
 
 .clientProxy {
@@ -93,7 +94,7 @@
     align-items: center;
     color: black;
     font-weight: 700;
-    margin-left: 60px;
+    margin-left: 5px;
     line-height: 30px;
 }
 
@@ -106,4 +107,25 @@
 .clientEmpty>img {
     width: 50%;
     height: 50%;
+}
+
+.dataUse {
+    display: flex;
+    align-items: center;
+}
+
+.dataUseUp {
+    width: 20px;
+    height: 20px;
+    margin-left: -3px;
+    margin-right: 2px;
+    color: #ff782a;
+}
+
+.dataUseDown {
+    width: 20px;
+    height: 20px;
+    margin-left: 5px;
+    margin-right: 2px;
+    color: #5dc31d;
 }
