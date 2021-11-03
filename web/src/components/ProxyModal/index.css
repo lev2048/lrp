@@ -1,0 +1,105 @@
+.modalMask {
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1;
+    position: absolute;
+    background-color: #8b8f9f8a;
+}
+
+.proxyModal {
+    position: absolute;
+    width: 500px;
+    height: 400px;
+    left: calc(50% - 250px);
+    top: 25%;
+    padding: 25px;
+    z-index: 2;
+    background-color: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 3px 10px rgb(107 147 205 / 15%);
+}
+
+.modalTitle {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #364b61;
+}
+
+.modalInputTitle {
+    color: #9597a6;
+    font-size: 18px;
+    font-weight: 400;
+    margin-bottom: 8px;
+}
+
+.modalInput {
+    margin-bottom: 20px;
+}
+
+.modalInput>input {
+    background-color: #f6f9fd;
+    background-image: none;
+    border: 1px solid #dcdfe6;
+    box-sizing: border-box;
+    color: #606266;
+    display: inline-block;
+    font-size: inherit;
+    height: 40px;
+    line-height: 40px;
+    outline: none;
+    padding: 0 15px;
+    transition: border-color .2s cubic-bezier(.645, .045, .355, 1);
+    width: 100%;
+    border-radius: 8px;
+}
+
+.modalInput>input::-webkit-outer-spin-button,
+.modalInput>input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+}
+
+.modalInput>input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+.modalButton {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-evenly;
+    margin-top: 8%;
+}
+
+.modalButton>div {
+    width: 120px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+    font-size: 18px;
+    font-weight: 600;
+    box-shadow: 0 3px 5px rgb(24 29 36 / 15%);
+    user-select: none
+}
+
+.modalCancel {
+    color: #9facba;
+    background-color: #eff4fb;
+}
+
+.modalCancel:hover {
+    background-color: #d3dbe6;
+}
+
+.modalOK {
+    color: #fbfcff;
+    background-color: #67C23A;
+}
+
+.modalOK:hover {
+    background-color: #529c2d;
+}

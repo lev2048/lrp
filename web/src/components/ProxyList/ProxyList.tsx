@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BsPlusCircleDotted } from "react-icons/bs";
 import { BiPlanet, BiTrash, BiTerminal } from "react-icons/bi";
+import { ProxyModal } from "../ProxyModal";
 import "./index.css";
 
 interface ProxyInfo {
@@ -24,6 +25,7 @@ interface IProps {
 }
 
 const ProxyList: React.FunctionComponent<IProps> = (props: IProps): JSX.Element => {
+    const [showModal, setModal] = useState(false);
     let proxyList: ProxyInfo[] = [];
     props.data.forEach((c: Client) => {
         if (c.online) {
@@ -39,16 +41,17 @@ const ProxyList: React.FunctionComponent<IProps> = (props: IProps): JSX.Element 
             <div className="proxyStatus">{v.status === 1 ? "Running" : "Warning"}</div>
             <div className="proxyDel"><BiTrash /></div>
         </div>
-    ))
+    ));
     return (
         <div className="proxyList">
             <div className="proxyListHeader">
                 <div className="InfoTitle">ProxyList</div>
-                <div className="proxyAdd"><BsPlusCircleDotted /></div>
+                <div className="proxyAdd" onClick={() => setModal(!showModal)}><BsPlusCircleDotted /></div>
             </div>
             <div className="proxyListContent">
-                {content ? content : (<div className="emptyContent"><img src="/images/empty.png" alt="" /></div>)}
+                {content.length !== 0 ? content : (<div className="emptyContent"><img src="/images/empty.png" alt="" /></div>)}
             </div>
+            {showModal && <ProxyModal setModal={setModal} />}
         </div>
     );
 }

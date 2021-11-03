@@ -76,7 +76,7 @@ const ServerPanel: React.FunctionComponent<IProps> = (props: IProps): JSX.Elemen
             </div>
             <div className="InfoTitle">ClientList</div>
             <div className="clientList">
-                {clients ? clients: <div className="clientEmpty"><img src="/images/noClient.png" alt=""></img></div>}
+                {clients.length !== 0 ? clients: <div className="clientEmpty"><img src="/images/noClient.png" alt=""></img></div>}
             </div>
         </div>
     );
